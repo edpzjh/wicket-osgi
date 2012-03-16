@@ -7,7 +7,7 @@ import org.osgi.framework.ServiceRegistration;
 
 public class Activator implements BundleActivator {
 
-    public static BundleContext context;
+    static BundleContext context;
     private ServiceRegistration initializerBundleListenerContext;
 
     @Override
