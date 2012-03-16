@@ -50,9 +50,10 @@ public class IInitializerBundleListener implements BundleListener {
             analyseBundleToAddInitializerService(event.getBundle());
         }
         if (event.getType() == BundleEvent.STOPPING) {
-            if (initializerServices.containsKey(event.getBundle().getSymbolicName())) {
-                initializerServices.get(event.getBundle().getSymbolicName()).unregister();
-                initializerServices.remove(event.getBundle().getSymbolicName());
+            String symbolicName = event.getBundle().getSymbolicName();
+            if (initializerServices.containsKey(symbolicName)) {
+                initializerServices.get(symbolicName).unregister();
+                initializerServices.remove(symbolicName);
             }
         }
     }
