@@ -15,7 +15,7 @@ public class Activator implements BundleActivator {
         this.context = context;
         IInitializerBundleListener initializerBundleListener = new IInitializerBundleListener(context);
         initializerBundleListenerContext =
-            context.registerService(BundleListener.class.getName(), initializerBundleListener, null);
+            context.registerService(IInitializerBundleListener.class.getName(), initializerBundleListener, null);
     }
 
     @Override
