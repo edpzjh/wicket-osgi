@@ -24,12 +24,33 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>wicket-util</artifactId>
-	<name>Wicket Util</name>
+  <name>Wicket Util</name>
+  <packaging>bundle</packaging>
   <dependencies>
 	<dependency>
 		<groupId>junit</groupId>
 		<artifactId>junit</artifactId>
 		<scope>provided</scope>
 	</dependency>
-  </dependencies>
+</dependencies>
+<build>
+  <plugins>
+<plugin>
+  <groupId>org.apache.felix</groupId>
+  <artifactId>maven-bundle-plugin</artifactId>
+  <extensions>true</extensions>
+  <configuration>
+    <instructions>
+      <Import-Package>
+        javax.crypto.*; resolution:="optional",
+        javax.swing.*; resolution:="optional",
+        org.junit.*; resolution:="optional",
+        junit.framework.*; resolution:="optional",
+        *
+      </Import-Package>
+    </instructions>
+  </configuration>
+</plugin>
+</plugins>
+</build>
 </project>

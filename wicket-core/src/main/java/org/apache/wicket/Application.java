@@ -35,6 +35,8 @@ import org.apache.wicket.application.HeaderContributorListenerCollection;
 import org.apache.wicket.application.IComponentInitializationListener;
 import org.apache.wicket.application.IComponentInstantiationListener;
 import org.apache.wicket.core.request.mapper.IMapperContext;
+import org.apache.wicket.core.util.lang.PropertyResolver;
+import org.apache.wicket.core.util.lang.WicketObjects;
 import org.apache.wicket.event.IEvent;
 import org.apache.wicket.event.IEventSink;
 import org.apache.wicket.javascript.DefaultJavaScriptCompressor;
@@ -111,8 +113,6 @@ import org.apache.wicket.util.IProvider;
 import org.apache.wicket.util.io.IOUtils;
 import org.apache.wicket.util.lang.Args;
 import org.apache.wicket.util.lang.Generics;
-import org.apache.wicket.core.util.lang.PropertyResolver;
-import org.apache.wicket.core.util.lang.WicketObjects;
 import org.apache.wicket.util.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -203,6 +203,8 @@ public abstract class Application implements UnboundListener, IEventSink
 
 	/** session store provider */
 	private IProvider<ISessionStore> sessionStoreProvider;
+
+	private IComponentInitializer componentInitializer;
 
 	/**
 	 * The decorator this application uses to decorate any header responses created by Wicket
@@ -481,44 +483,78 @@ public abstract class Application implements UnboundListener, IEventSink
 	}
 
 
-	/**
-	 * THIS METHOD IS NOT PART OF THE WICKET PUBLIC API. DO NOT CALL.
-	 * 
-	 * Initializes wicket components.
-	 */
-	public final void initializeComponents()
+	public interface IComponentInitializer
 	{
-		// Load any wicket properties files we can find
-		try
-		{
-			// Load properties files used by all libraries
+		void initializeComponents();
+	}
 
-			final Iterator<URL> resources = getApplicationSettings().getClassResolver()
-				.getResources("wicket.properties");
-			while (resources.hasNext())
+	private class DefaultComponentInitializer implements IComponentInitializer
+	{
+
+		/**
+		 * THIS METHOD IS NOT PART OF THE WICKET PUBLIC API. DO NOT CALL.
+		 * 
+		 * Initializes wicket components.
+		 */
+		public final void initializeComponents()
+		{
+			// Load any wicket properties files we can find
+			try
 			{
-				InputStream in = null;
-				try
+				// Load properties files used by all libraries
+
+				final Iterator<URL> resources = getApplicationSettings().getClassResolver()
+					.getResources("wicket.properties");
+				while (resources.hasNext())
 				{
-					final URL url = resources.next();
-					final Properties properties = new Properties();
-					in = url.openStream();
-					properties.load(in);
-					load(properties);
-				}
-				finally
-				{
-					IOUtils.close(in);
+					InputStream in = null;
+					try
+					{
+						final URL url = resources.next();
+						final Properties properties = new Properties();
+						in = url.openStream();
+						properties.load(in);
+						load(properties);
+					}
+					finally
+					{
+						IOUtils.close(in);
+					}
 				}
 			}
-		}
-		catch (IOException e)
-		{
-			throw new WicketRuntimeException("Unable to load initializers file", e);
+			catch (IOException e)
+			{
+				throw new WicketRuntimeException("Unable to load initializers file", e);
+			}
+
+			// now call any initializers we read
+			initInitializers();
 		}
 
-		// now call any initializers we read
-		initInitializers();
+		/**
+		 * Iterate initializers list, calling {@link IInitializer#init(Application)} on any
+		 * instances found in it.
+		 */
+		private void initInitializers()
+		{
+			for (IInitializer initializer : initializers)
+			{
+				log.info("[" + getName() + "] init: " + initializer);
+				initializer.init(Application.this);
+			}
+		}
+
+		/**
+		 * @param properties
+		 *            Properties map with names of any library initializers in it
+		 */
+		private void load(final Properties properties)
+		{
+			addInitializer(properties.getProperty("initializer"));
+			addInitializer(properties.getProperty(getName() + "-initializer"));
+		}
+
+
 	}
 
 	/**
@@ -600,28 +636,6 @@ public abstract class Application implements UnboundListener, IEventSink
 		}
 	}
 
-	/**
-	 * Iterate initializers list, calling {@link IInitializer#init(Application)} on any instances
-	 * found in it.
-	 */
-	private void initInitializers()
-	{
-		for (IInitializer initializer : initializers)
-		{
-			log.info("[" + getName() + "] init: " + initializer);
-			initializer.init(this);
-		}
-	}
-
-	/**
-	 * @param properties
-	 *            Properties map with names of any library initializers in it
-	 */
-	private void load(final Properties properties)
-	{
-		addInitializer(properties.getProperty("initializer"));
-		addInitializer(properties.getProperty(getName() + "-initializer"));
-	}
 
 	/**
 	 * Called when wicket servlet is destroyed. Overrides do not have to call super.
@@ -720,6 +734,20 @@ public abstract class Application implements UnboundListener, IEventSink
 		getRequestCycleListeners().add(new RequestLoggerRequestCycleListener());
 	}
 
+	private IComponentInitializer getComponentInitializer()
+	{
+		if (componentInitializer == null)
+		{
+			return new DefaultComponentInitializer();
+		}
+		return componentInitializer;
+	}
+
+	public void setComponentInitiailizer(IComponentInitializer componentInitializer)
+	{
+		this.componentInitializer = componentInitializer;
+	}
+
 	/**
 	 * @return the exception mapper provider
 	 */
@@ -812,7 +840,7 @@ public abstract class Application implements UnboundListener, IEventSink
 			throw new IllegalStateException("setName must be called before initApplication");
 		}
 		internalInit();
-		initializeComponents();
+		getComponentInitializer().initializeComponents();
 		init();
 		applicationListeners.onAfterInitialized(this);
 

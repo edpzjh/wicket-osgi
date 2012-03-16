@@ -24,8 +24,9 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>wicket-core</artifactId>
-	<packaging>jar</packaging>
-	<name>Wicket Core</name>
+	<packaging>bundle</packaging>
+  <name>Wicket Core</name>
+
 	<description>
 		Wicket is a Java web application framework that takes simplicity, 
 		separation of concerns and ease of development to a whole new level. 
@@ -86,7 +87,22 @@
 						<exclude>**/jquery*.js</exclude>
 					</excludes>
 				</configuration>
-			</plugin>
+      </plugin>
+<plugin>
+  <groupId>org.apache.felix</groupId>
+  <artifactId>maven-bundle-plugin</artifactId>
+  <extensions>true</extensions>
+  <configuration>
+    <instructions>
+      <Import-Package>
+        org.apache.wicket.*; version="${project.version}",
+        javax.imageio; resolution:="optional",
+        junit.framework; resolution:="optional",
+        *
+      </Import-Package>
+    </instructions>
+  </configuration>
+</plugin>
 		</plugins>
 	</build>
 </project>
