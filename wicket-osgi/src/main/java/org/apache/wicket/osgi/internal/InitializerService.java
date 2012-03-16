@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -17,7 +18,7 @@ import org.osgi.framework.Bundle;
 
 public class InitializerService implements IInitializer {
 
-    private HashMap<String, List<Class<?>>> initializer = new HashMap<String, List<Class<?>>>();
+    private final Map<String, List<Class<?>>> initializers = new HashMap<String, List<Class<?>>>();
 
     public InitializerService(Bundle bundle, URL resource) {
         InputStream in = null;
@@ -43,11 +44,13 @@ public class InitializerService implements IInitializer {
     }
 
     private void loadClasses(Properties properties, Bundle bundle) {
-        Set<Object> keySet = properties.keySet();
         addInitializer(Application.INITIALIZER, properties.getProperty(Application.INITIALIZER), bundle);
-        for (Object key : keySet) {
-            if (key.toString().endsWith("-" + Application.INITIALIZER)) {
-                addInitializer(key.toString(), properties.getProperty(key.toString()), bundle);
+
+        Set<Map.Entry<Object,Object>> entrySet = properties.entrySet();
+        for (Map.Entry<Object, Object> entry : entrySet) {
+            String key = entry.getKey().toString();
+            if (key.endsWith("-" + Application.INITIALIZER)) {
+                addInitializer(key, properties.getProperty(entry.getValue().toString()), bundle);
             }
         }
     }
@@ -56,11 +59,11 @@ public class InitializerService implements IInitializer {
         if (Strings.isEmpty(property)) {
             return;
         }
-        if (!initializer.containsKey(key)) {
-            initializer.put(key, new ArrayList<Class<?>>());
+        if (!initializers.containsKey(key)) {
+            initializers.put(key, new ArrayList<Class<?>>());
         }
         try {
-            initializer.get(key).add(bundle.loadClass(property));
+            initializers.get(key).add(bundle.loadClass(property));
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -85,9 +88,9 @@ public class InitializerService implements IInitializer {
 
     private List<IInitializer> loadInitializerImplementations(Application application) {
         List<IInitializer> retVal = new ArrayList<IInitializer>();
-        List<Class<?>> initializerClasses = initializer.get(Application.INITIALIZER);
+        List<Class<?>> initializerClasses = initializers.get(Application.INITIALIZER);
         createInitializers(retVal, initializerClasses);
-        List<Class<?>> applicationSpecificInitializerClasses = initializer.get(application.getName());
+        List<Class<?>> applicationSpecificInitializerClasses = initializers.get(application.getName());
         createInitializers(retVal, applicationSpecificInitializerClasses);
         return retVal;
     }
