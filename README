@@ -29,7 +29,7 @@ OSGI MANUAL
     <instructions>
       <Web-ContextPath>/library</Web-ContextPath>
       <Import-Package>
-        <-- Following semvers here we're require the feature set of at least 6.0 (or 6.1, ...) and max till 7 -->
+        <!-- Following semvers here we're require the feature set of at least 6.0 (or 6.1, ...) and max till 7 -->
         org.apache.wicket.osgi;version="(6.0,7]",
         org.apache.wicket.*;version="(6.0,7]",
         *
