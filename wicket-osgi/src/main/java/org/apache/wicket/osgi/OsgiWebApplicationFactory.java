@@ -2,8 +2,8 @@ package org.apache.wicket.osgi;
 
 import javax.servlet.ServletContext;
 
-import org.apache.wicket.Application.IComponentInitializer;
 import org.apache.wicket.IInitializer;
+import org.apache.wicket.IModuleInitializer;
 import org.apache.wicket.WicketRuntimeException;
 import org.apache.wicket.protocol.http.IWebApplicationFactory;
 import org.apache.wicket.protocol.http.WebApplication;
@@ -53,11 +53,13 @@ public class OsgiWebApplicationFactory implements IWebApplicationFactory {
                         super.removedService(reference, service);
                     }
                 };
-                webApplication.setComponentInitiailizer(new IComponentInitializer() {
-                    @Override
-                    public void initializeComponents() {
-                        iinitializerProviderTracker.open(true);
-                    }
+                webApplication.setModuleInitializer(new IModuleInitializer()
+                {
+	                @Override
+	                public void initialize()
+	                {
+		                iinitializerProviderTracker.open(true);
+	                }
                 });
                 return webApplication;
             }

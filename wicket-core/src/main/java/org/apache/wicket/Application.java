@@ -171,6 +171,12 @@ public abstract class Application implements UnboundListener, IEventSink
 	/** Log. */
 	private static final Logger log = LoggerFactory.getLogger(Application.class);
 
+	/** The name of the file with Wicket specific propertis */
+	public static final String WICKET_PROPERTIES = "wicket.properties";
+
+	/** The name of the property that defines the IInitializer for a module/bundle */
+	public static final String INITIALIZER = "initializer";
+
 	/** root mapper */
 	private IRequestMapper rootRequestMapper;
 
@@ -204,7 +210,7 @@ public abstract class Application implements UnboundListener, IEventSink
 	/** session store provider */
 	private IProvider<ISessionStore> sessionStoreProvider;
 
-	private IComponentInitializer componentInitializer;
+	private IModuleInitializer moduleInitializer;
 
 	/**
 	 * The decorator this application uses to decorate any header responses created by Wicket
@@ -482,29 +488,29 @@ public abstract class Application implements UnboundListener, IEventSink
 		internalGetPageManager().sessionExpired(sessionId);
 	}
 
-
-	public interface IComponentInitializer
+	private static class DefaultModuleInitializer implements IModuleInitializer
 	{
-		void initializeComponents();
-	}
+		private final Application application;
 
-	private class DefaultComponentInitializer implements IComponentInitializer
-	{
+		private DefaultModuleInitializer(final Application application)
+		{
+			this.application = application;
+		}
 
 		/**
 		 * THIS METHOD IS NOT PART OF THE WICKET PUBLIC API. DO NOT CALL.
 		 * 
 		 * Initializes wicket components.
 		 */
-		public final void initializeComponents()
+		public final void initialize()
 		{
 			// Load any wicket properties files we can find
 			try
 			{
 				// Load properties files used by all libraries
 
-				final Iterator<URL> resources = getApplicationSettings().getClassResolver()
-					.getResources("wicket.properties");
+				final Iterator<URL> resources = application.getApplicationSettings().getClassResolver()
+					.getResources(WICKET_PROPERTIES);
 				while (resources.hasNext())
 				{
 					InputStream in = null;
@@ -537,10 +543,10 @@ public abstract class Application implements UnboundListener, IEventSink
 		 */
 		private void initInitializers()
 		{
-			for (IInitializer initializer : initializers)
+			for (IInitializer initializer : application.initializers)
 			{
-				log.info("[" + getName() + "] init: " + initializer);
-				initializer.init(Application.this);
+				log.debug("Initializing module '{}' for application '{}'", initializer, application.getName());
+				initializer.init(application);
 			}
 		}
 
@@ -550,11 +556,9 @@ public abstract class Application implements UnboundListener, IEventSink
 		 */
 		private void load(final Properties properties)
 		{
-			addInitializer(properties.getProperty("initializer"));
-			addInitializer(properties.getProperty(getName() + "-initializer"));
+			application.addInitializer(properties.getProperty(INITIALIZER));
+			application.addInitializer(properties.getProperty(application.getName() + "-" + INITIALIZER));
 		}
-
-
 	}
 
 	/**
@@ -734,18 +738,18 @@ public abstract class Application implements UnboundListener, IEventSink
 		getRequestCycleListeners().add(new RequestLoggerRequestCycleListener());
 	}
 
-	private IComponentInitializer getComponentInitializer()
+	private IModuleInitializer getModuleInitializer()
 	{
-		if (componentInitializer == null)
+		if (moduleInitializer == null)
 		{
-			return new DefaultComponentInitializer();
+			return new DefaultModuleInitializer(this);
 		}
-		return componentInitializer;
+		return moduleInitializer;
 	}
 
-	public void setComponentInitiailizer(IComponentInitializer componentInitializer)
+	public void setModuleInitializer(IModuleInitializer moduleInitializer)
 	{
-		this.componentInitializer = componentInitializer;
+		this.moduleInitializer = moduleInitializer;
 	}
 
 	/**
@@ -840,7 +844,7 @@ public abstract class Application implements UnboundListener, IEventSink
 			throw new IllegalStateException("setName must be called before initApplication");
 		}
 		internalInit();
-		getComponentInitializer().initializeComponents();
+		getModuleInitializer().initialize();
 		init();
 		applicationListeners.onAfterInitialized(this);
 

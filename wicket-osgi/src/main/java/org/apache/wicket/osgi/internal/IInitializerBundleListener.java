@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.wicket.Application;
 import org.apache.wicket.IInitializer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -30,7 +31,7 @@ public class IInitializerBundleListener implements BundleListener {
     }
 
     private void analyseBundleToAddInitializerService(Bundle bundle) {
-        URL resource = bundle.getResource("wicket.properties");
+        URL resource = bundle.getResource(Application.WICKET_PROPERTIES);
         if (resource != null) {
             addIInitializerServiceToBundle(bundle, resource);
         }

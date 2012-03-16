@@ -17,8 +17,6 @@ import org.osgi.framework.Bundle;
 
 public class InitializerService implements IInitializer {
 
-    private static final String INITIALIZER = "initializer";
-
     private HashMap<String, List<Class<?>>> initializer = new HashMap<String, List<Class<?>>>();
 
     public InitializerService(Bundle bundle, URL resource) {
@@ -46,9 +44,9 @@ public class InitializerService implements IInitializer {
 
     private void loadClasses(Properties properties, Bundle bundle) {
         Set<Object> keySet = properties.keySet();
-        addInitializer(INITIALIZER, properties.getProperty(INITIALIZER), bundle);
+        addInitializer(Application.INITIALIZER, properties.getProperty(Application.INITIALIZER), bundle);
         for (Object key : keySet) {
-            if (key.toString().endsWith("-" + INITIALIZER)) {
+            if (key.toString().endsWith("-" + Application.INITIALIZER)) {
                 addInitializer(key.toString(), properties.getProperty(key.toString()), bundle);
             }
         }
@@ -87,7 +85,7 @@ public class InitializerService implements IInitializer {
 
     private List<IInitializer> loadInitializerImplementations(Application application) {
         List<IInitializer> retVal = new ArrayList<IInitializer>();
-        List<Class<?>> initializerClasses = initializer.get(INITIALIZER);
+        List<Class<?>> initializerClasses = initializer.get(Application.INITIALIZER);
         createInitializers(retVal, initializerClasses);
         List<Class<?>> applicationSpecificInitializerClasses = initializer.get(application.getName());
         createInitializers(retVal, applicationSpecificInitializerClasses);
