@@ -38,6 +38,21 @@ OSGI MANUAL
   </configuration>
 </plugin>
 
+** change the web.xml now in src/main/resources/WEB-INF/web.xml to
+
+<filter>
+  <filter-name>wicket.osgi-http</filter-name>
+  <filter-class>org.apache.wicket.protocol.http.WicketFilter</filter-class>
+  <init-param>
+    <param-name>applicationFactoryClassName</param-name>
+    <param-value>org.apache.wicket.osgi.OsgiWebApplicationFactory</param-value>
+  </init-param>
+  <init-param>
+    <param-name>applicationClassName</param-name>
+    <param-value>osgi.WicketApplication</param-value>
+  </init-param>
+</filter>
+
 ** compile and install/start your bundle again using install mvn:... and start BUNDLE_ID
 
 Apache Wicket 1.5
