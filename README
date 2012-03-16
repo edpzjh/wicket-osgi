@@ -7,10 +7,10 @@ OSGI MANUAL
 * exec bin/karaf.bat | bin/karaf
 * exec "features:install war" in the karaf console
 * install and start the wicket bundles in the karaf console:
-** install mvn:org.apache.wicket/wicket-util/6.0-SNAPSHOT
-** install mvn:org.apache.wicket/wicket-request/6.0-SNAPSHOT
-** install mvn:org.apache.wicket/wicket-core/6.0-SNAPSHOT
-** install mvn:org.apache.wicket/wicket-osgi/6.0-SNAPSHOT
+** install mvn:org.apache.wicket/wicket-util/6.0-OSGI-SNAPSHOT
+** install mvn:org.apache.wicket/wicket-request/6.0-OSGI-SNAPSHOT
+** install mvn:org.apache.wicket/wicket-core/6.0-OSGI-SNAPSHOT
+** install mvn:org.apache.wicket/wicket-osgi/6.0-OSGI-SNAPSHOT
 * now list the bundles using "la"
 * start the bundles using "start BUNDLE_ID_FOR_UTIL BUNDLE_ID_FOR_REQUEST ..."
 * la should show now all to started
@@ -25,11 +25,12 @@ OSGI MANUAL
   <groupId>org.apache.felix</groupId>
   <artifactId>maven-bundle-plugin</artifactId>
   <extensions>true</extensions>
+  <version>2.3.7</version>
   <configuration>
     <instructions>
       <Web-ContextPath>/library</Web-ContextPath>
       <Import-Package>
-        <-- Following semvers here we're require the feature set of at least 6.0 (or 6.1, ...) and max till 7 -->
+        <!-- Following semvers here we're require the feature set of at least 6.0 (or 6.1, ...) and max till 7 -->
         org.apache.wicket.osgi;version="(6.0,7]",
         org.apache.wicket.*;version="(6.0,7]",
         *
