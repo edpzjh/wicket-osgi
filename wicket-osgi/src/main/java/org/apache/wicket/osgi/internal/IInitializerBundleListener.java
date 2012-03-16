@@ -13,15 +13,16 @@ import org.osgi.framework.ServiceRegistration;
 
 public class IInitializerBundleListener implements BundleListener {
 
-    private Map<String, ServiceRegistration> initializerServices = new HashMap<String, ServiceRegistration>();
+    private final Map<String, ServiceRegistration> initializerServices;
     private final BundleContext ctx;
 
     public IInitializerBundleListener(BundleContext ctx) {
         this.ctx = ctx;
-        analyseAlreadStartedBundles();
+        this.initializerServices = new HashMap<String, ServiceRegistration>();
+        analyseAlreadyStartedBundles();
     }
 
-    private void analyseAlreadStartedBundles() {
+    private void analyseAlreadyStartedBundles() {
         Bundle[] bundles = ctx.getBundles();
         for (Bundle bundle : bundles) {
             analyseBundleToAddInitializerService(bundle);
