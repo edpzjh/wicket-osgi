@@ -19,20 +19,22 @@ package org.apache.wicket.core.request.mapper;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.apache.wicket.core.util.lang.WicketObjects;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.handler.resource.ResourceReferenceRequestHandler;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.ExternalUrlResourceReference;
 import org.apache.wicket.request.resource.IResource;
 import org.apache.wicket.request.resource.MetaInfStaticResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.request.resource.caching.IResourceCachingStrategy;
 import org.apache.wicket.request.resource.caching.IStaticCacheableResource;
 import org.apache.wicket.request.resource.caching.ResourceUrl;
+import org.apache.wicket.resource.bundles.ResourceBundleReference;
 import org.apache.wicket.util.IProvider;
-import org.apache.wicket.core.util.lang.WicketObjects;
 import org.apache.wicket.util.string.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,14 +44,14 @@ import org.slf4j.LoggerFactory;
  * {@link ResourceReference}s.
  * <p>
  * Decodes and encodes the following URLs:
- *
+ * 
  * <pre>
  *    /wicket/resource/org.apache.wicket.ResourceScope/name
  *    /wicket/resource/org.apache.wicket.ResourceScope/name?en
  *    /wicket/resource/org.apache.wicket.ResourceScope/name?-style
  *    /wicket/resource/org.apache.wicket.ResourceScope/resource/name.xyz?en_EN-style
  * </pre>
- *
+ * 
  * @author Matej Knopp
  * @author igor.vaynberg
  * @author Peter Ertl
@@ -65,7 +67,7 @@ class BasicResourceReferenceMapper extends AbstractResourceReferenceMapper
 
 	/**
 	 * Construct.
-	 *
+	 * 
 	 * @param pageParametersEncoder
 	 * @param cachingStrategy
 	 */
@@ -112,7 +114,8 @@ class BasicResourceReferenceMapper extends AbstractResourceReferenceMapper
 
 					if (Strings.isEmpty(segment))
 					{
-						throw new IllegalStateException("caching strategy returned empty name for " + resourceUrl);
+						throw new IllegalStateException(
+							"caching strategy returned empty name for " + resourceUrl);
 					}
 				}
 				if (name.length() > 0)
@@ -166,6 +169,12 @@ class BasicResourceReferenceMapper extends AbstractResourceReferenceMapper
 
 			Url url;
 
+			if (reference instanceof ResourceBundleReference)
+			{
+				// unwrap the bundle to render the url for the actual reference
+				reference = ((ResourceBundleReference)reference).getBundleReference();
+			}
+
 			if (reference instanceof MetaInfStaticResourceReference)
 			{
 				url = ((MetaInfStaticResourceReference)reference).mapHandler(referenceRequestHandler);
@@ -175,6 +184,12 @@ class BasicResourceReferenceMapper extends AbstractResourceReferenceMapper
 					return url;
 				}
 				// otherwise it has to be served by the standard wicket way
+			}
+			else if (reference instanceof ExternalUrlResourceReference)
+			{
+				ExternalUrlResourceReference externalUrlReference = (ExternalUrlResourceReference)reference;
+				url = externalUrlReference.getUrl();
+				return url;
 			}
 
 			url = new Url();
@@ -222,7 +237,8 @@ class BasicResourceReferenceMapper extends AbstractResourceReferenceMapper
 
 						if (Strings.isEmpty(token))
 						{
-							throw new IllegalStateException("caching strategy returned empty name for " + resource);
+							throw new IllegalStateException(
+								"caching strategy returned empty name for " + resource);
 						}
 					}
 				}

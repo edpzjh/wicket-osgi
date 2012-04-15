@@ -94,7 +94,6 @@ import org.apache.wicket.settings.IRequestCycleSettings;
 import org.apache.wicket.settings.IRequestLoggerSettings;
 import org.apache.wicket.settings.IResourceSettings;
 import org.apache.wicket.settings.ISecuritySettings;
-import org.apache.wicket.settings.ISessionSettings;
 import org.apache.wicket.settings.IStoreSettings;
 import org.apache.wicket.settings.def.ApplicationSettings;
 import org.apache.wicket.settings.def.DebugSettings;
@@ -107,10 +106,10 @@ import org.apache.wicket.settings.def.RequestCycleSettings;
 import org.apache.wicket.settings.def.RequestLoggerSettings;
 import org.apache.wicket.settings.def.ResourceSettings;
 import org.apache.wicket.settings.def.SecuritySettings;
-import org.apache.wicket.settings.def.SessionSettings;
 import org.apache.wicket.settings.def.StoreSettings;
 import org.apache.wicket.util.IProvider;
 import org.apache.wicket.util.io.IOUtils;
+import org.apache.wicket.util.io.Streams;
 import org.apache.wicket.util.lang.Args;
 import org.apache.wicket.util.lang.Generics;
 import org.apache.wicket.util.time.Duration;
@@ -508,24 +507,20 @@ public abstract class Application implements UnboundListener, IEventSink
 			try
 			{
 				// Load properties files used by all libraries
-
 				final Iterator<URL> resources = application.getApplicationSettings().getClassResolver()
 					.getResources(WICKET_PROPERTIES);
-				while (resources.hasNext())
+				InputStream in = null;
+				try
 				{
-					InputStream in = null;
-					try
-					{
-						final URL url = resources.next();
-						final Properties properties = new Properties();
-						in = url.openStream();
-						properties.load(in);
-						load(properties);
-					}
-					finally
-					{
-						IOUtils.close(in);
-					}
+					final URL url = resources.next();
+					final Properties properties = new Properties();
+					in = Streams.readNonCaching(url);
+					properties.load(in);
+					load(properties);
+				}
+				finally
+				{
+					IOUtils.close(in);
 				}
 			}
 			catch (IOException e)
@@ -628,8 +623,7 @@ public abstract class Application implements UnboundListener, IEventSink
 	}
 
 	/**
-	 * Iterate initializers list, calling {@link IInitializer#destroy(Application)} on any instances
-	 * found in it.
+	 * Iterate initializers list, calling their {@link IInitializer#destroy(Application) destroy} methods.
 	 */
 	private void destroyInitializers()
 	{
@@ -1082,9 +1076,6 @@ public abstract class Application implements UnboundListener, IEventSink
 	/** The Security Settings */
 	private ISecuritySettings securitySettings;
 
-	/** The Session Settings */
-	private ISessionSettings sessionSettings;
-
 	/** The settings for {@link IPageStore}, {@link IDataStore} and {@link IPageManager} */
 	private IStoreSettings storeSettings;
 
@@ -1334,28 +1325,6 @@ public abstract class Application implements UnboundListener, IEventSink
 	public final void setSecuritySettings(final ISecuritySettings securitySettings)
 	{
 		this.securitySettings = securitySettings;
-	}
-
-	/**
-	 * @return Application's session related settings
-	 */
-	public final ISessionSettings getSessionSettings()
-	{
-		checkSettingsAvailable();
-		if (sessionSettings == null)
-		{
-			sessionSettings = new SessionSettings();
-		}
-		return sessionSettings;
-	}
-
-	/**
-	 * 
-	 * @param sessionSettings
-	 */
-	public final void setSessionSettings(final ISessionSettings sessionSettings)
-	{
-		this.sessionSettings = sessionSettings;
 	}
 
 	/**

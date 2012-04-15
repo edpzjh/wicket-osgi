@@ -14,26 +14,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.wicket.util.collections;
+package org.apache.wicket.request.resource;
 
-import java.io.Serializable;
-import java.net.URL;
-import java.util.Comparator;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.html.WebPage;
 
 /**
- * A comparator of URL instances.
- *
- * Comparing URLs with their implementation of #equals() is
- * bad because it may cause problems like DNS resolving, or other
- * slow checks. This comparator uses the external form of an URL
- * to make a simple comparison of two Strings.
- *
- * @since 1.5.6
+ * @author papegaaij
  */
-public class UrlExternalFormComparator implements Comparator<URL>, Serializable
+public class BundlesPage extends WebPage
 {
-	public int compare(URL url1, URL url2)
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * Construct.
+	 */
+	public BundlesPage()
 	{
-		return url1.toExternalForm().compareTo(url2.toExternalForm());
+	}
+
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		response.render(JavaScriptHeaderItem.forReference(new JavaScriptResourceReference(
+			ResouceBundleTest.class, "a.js")));
 	}
 }

@@ -14,26 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.wicket.util.collections;
+package org.apache.wicket.request.resource;
 
-import java.io.Serializable;
-import java.net.URL;
-import java.util.Comparator;
+import org.apache.wicket.request.Url;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * A comparator of URL instances.
- *
- * Comparing URLs with their implementation of #equals() is
- * bad because it may cause problems like DNS resolving, or other
- * slow checks. This comparator uses the external form of an URL
- * to make a simple comparison of two Strings.
- *
- * @since 1.5.6
+ * @since 6.0
  */
-public class UrlExternalFormComparator implements Comparator<URL>, Serializable
+public class ExternalUrlResourceReferenceTest extends Assert
 {
-	public int compare(URL url1, URL url2)
+	@Test(expected = IllegalArgumentException.class)
+	public void onlyAbsoluteUrlsAllowed()
 	{
-		return url1.toExternalForm().compareTo(url2.toExternalForm());
+		Url url = Url.parse("some/relative/url");
+
+		// this should throw IllegalArgumentException because the Url is not absolute
+		new ExternalUrlResourceReference(url);
+	}
+
+	@Test
+	public void normalBehavior()
+	{
+		Url url = Url.parse("http://www.example.com/some/path.ext");
+		ExternalUrlResourceReference reference = new ExternalUrlResourceReference(url);
+		assertEquals(url, reference.getUrl());
+		assertNull(reference.getResource());
 	}
 }
