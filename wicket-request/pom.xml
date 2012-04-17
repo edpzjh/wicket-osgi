@@ -44,7 +44,7 @@
   <configuration>
     <instructions>
       <Import-Package>
-        org.apache.wicket.*;version="${project.version}",
+        org.apache.wicket.*;version="[${project.version},7)",
         *
       </Import-Package>
     </instructions>

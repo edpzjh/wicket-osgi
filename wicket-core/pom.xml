@@ -95,7 +95,7 @@
   <configuration>
     <instructions>
       <Import-Package>
-        org.apache.wicket.*; version="${project.version}",
+        org.apache.wicket.*; version="[${project.version},7)",
         javax.imageio; resolution:="optional",
         junit.framework; resolution:="optional",
         *
@@ -106,3 +106,4 @@
 		</plugins>
 	</build>
 </project>
+
